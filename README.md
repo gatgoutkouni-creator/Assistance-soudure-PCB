@@ -79,9 +79,6 @@ La solution réalisée permet de traiter les données nécessaires aux opératio
 
 Les essais réalisés ont permis de vérifier le fonctionnement de la chaîne de traitement, depuis l'importation des données jusqu'au pilotage des axes de la machine.
 
-## Contexte
-
-Projet de Fin d'Études réalisé au sein de **emkaMED**, Ouardanine, Monastir, Tunisie.
 
 ## Démonstration vidéo
 
@@ -98,6 +95,11 @@ Si la vidéo ne s'affiche pas directement, tu peux la télécharger ou la vision
 **Tableau de bord de contrôle de la machine :**
 
 ![Dashboard de contrôle](captures/dashboard_controle.png)
+
+## Contexte
+
+Projet de Fin d'Études réalisé au sein de **emkaMED**, Ouardanine, Monastir, Tunisie.
+
 
 ## Auteurs
 
