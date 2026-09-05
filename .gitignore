@@ -1,0 +1,8 @@
+# SolidWorks temp/backup files
+~$*
+*.bak
+*.SLDPRT.1
+*.SLDASM.1
+*~
+Thumbs.db
+.DS_Store
