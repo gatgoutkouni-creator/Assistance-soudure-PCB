@@ -1,7 +1,7 @@
 <<<<<<< HEAD
 # Assistance Soudure PCB
 
-Projet de Fin d'Études (PFE) — machine de soudure semi-automatique de cartes PCB.
+Projet de Fin d'Études (PFE) — Étude et implémentation d’une solution d’assistance à la soudure des cartes électroniques.
 
 ## Contenu du dépôt
 
