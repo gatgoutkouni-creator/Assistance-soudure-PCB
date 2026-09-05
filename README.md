@@ -1,10 +1,12 @@
 # Assistance Soudure PCB
 
+**Étude et implémentation d'une solution de soudure semi-automatique de cartes électroniques**
+
 Projet de Fin d'Études (PFE) réalisé par **Gatgout Kouni** et **Wedad Louleid**.
 
 ## Présentation
 
-Ce projet consiste en la conception et la réalisation d'une **machine de soudure semi-automatique pour cartes de circuits imprimés (PCB)**. L'objectif est d'automatiser le déplacement du fer à souder selon une séquence programmée (axes X/Y/Z de type CNC), afin de fiabiliser et d'accélérer les opérations de soudage par rapport à une soudure manuelle.
+Ce projet consiste en l'étude et l'implémentation d'une **solution de soudure semi-automatique de cartes électroniques**. L'objectif est d'automatiser le déplacement du fer à souder selon une séquence programmée (axes X/Y/Z de type CNC), afin de fiabiliser et d'accélérer les opérations de soudage par rapport à une soudure manuelle.
 
 Le projet couvre à la fois :
 - la **conception mécanique** de la machine (structure, axes de déplacement, supports, fixations) ;
