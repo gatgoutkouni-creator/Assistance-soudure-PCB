@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Dashboard de la machine de soudure Semi-Automatique</title>
+<style>
+:root{--bg:#080b0f;--panel:#111820;--card:#151e28;--border:#1e2d3d;--cyan:#00d4ff;--green:#00ff88;--red:#ff3355;--text:#c8dae8;--muted:#6f8ea7;--amber:#ffaa00}
+*{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,sans-serif}.shell{max-width:1700px;margin:0 auto;padding:16px}h1{margin:0 0 14px;color:var(--cyan)}.grid{display:grid;grid-template-columns:430px minmax(0,1fr) 420px;gap:14px}.panel{background:var(--panel);border:1px solid var(--border);border-radius:10px;overflow:hidden}.head{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between}.title{font-size:13px;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;font-weight:bold}.body{padding:14px}.row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px}.row>div{flex:1;min-width:130px}.label{font-size:11px;letter-spacing:1px;color:var(--muted);text-transform:uppercase;margin-bottom:6px}input,select,button{width:100%;padding:10px;border-radius:8px;border:1px solid #2a3f55;background:var(--card);color:var(--text)}button{cursor:pointer;font-weight:bold}button:hover{filter:brightness(1.08)}.danger{background:#3b0a14;border-color:#ff3355}.ok{background:#08321f;border-color:#00ff88}.warn{background:#332707;border-color:#ffaa00}.statusbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}.pill{padding:6px 10px;border:1px solid #2a3f55;border-radius:999px;background:#111827;font-size:12px}.metricgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.metric{background:#0d1117;border:1px solid var(--border);border-radius:8px;padding:10px}.metric .v{font-size:28px;color:var(--cyan);font-family:monospace}.metric .s{font-size:11px;color:var(--muted);text-transform:uppercase}pre{white-space:pre-wrap;background:#0d1117;border:1px solid var(--border);border-radius:8px;padding:12px;min-height:120px;max-height:280px;overflow:auto}.viewerWrap{position:relative;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:#020617;aspect-ratio:4/3}#streamImage,#overlayCanvas{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block}#overlayCanvas{pointer-events:auto;cursor:crosshair}.notice{font-size:12px;color:var(--muted);line-height:1.45}.pointList{max-height:220px;overflow:auto;background:#0d1117;border:1px solid var(--border);border-radius:8px;padding:8px}.pointItem{display:grid;grid-template-columns:38px 1fr auto;gap:8px;align-items:center;background:#111827;border:1px solid #223243;border-radius:8px;padding:8px;margin-bottom:8px}.badge{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:#082b20;color:var(--green);font-weight:bold}.smallbtn{padding:6px 8px;font-size:12px;width:auto}.table{width:100%;border-collapse:collapse;font-family:monospace;font-size:12px}.table th,.table td{border-bottom:1px solid #223243;padding:6px;text-align:left}.tablewrap{max-height:180px;overflow:auto;border:1px solid var(--border);border-radius:8px}.leftTools{margin-top:14px;background:#0d1117;border:1px solid var(--border);border-radius:12px;padding:12px}.leftTools pre{min-height:110px;max-height:170px}.leftTools .pointList{max-height:165px}.leftTools .tablewrap{max-height:155px}.jogGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}.jogBtn{font-size:20px;font-weight:bold;min-height:52px;user-select:none;touch-action:none}.jogBtn.active{outline:2px solid var(--green);filter:brightness(1.25)}.good{color:var(--green)}.bad{color:var(--red)}
+
+.loginOverlay{
+  position:fixed;
+  inset:0;
+  background:linear-gradient(135deg,#05070a,#0b1220);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:9999;
+}
+.loginCard{
+  width:min(430px,92vw);
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:18px;
+  padding:28px;
+  box-shadow:0 18px 60px rgba(0,0,0,.55);
+}
+.loginCard h2{
+  margin:0 0 6px;
+  color:var(--cyan);
+  font-size:24px;
+}
+.loginCard p{
+  margin:0 0 18px;
+  color:var(--muted);
+  line-height:1.45;
+}
+.loginError{
+  min-height:20px;
+  color:var(--red);
+  font-size:13px;
+  margin-top:8px;
+}
+.logoutBtn{
+  width:auto;
+  padding:7px 12px;
+  border-radius:999px;
+  font-size:12px;
+  background:#3b0a14;
+  border-color:#ff3355;
+}
+
+@media(max-width:1300px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div id="loginOverlay" class="loginOverlay">
+  <div class="loginCard">
+    <h2>Dashboard de la machine de soudure Semi-Automatique</h2>
+    
+    <div class="label">Nom d'utilisateur</div>
+    <input id="loginUser" type="text" value="" autocomplete="username" placeholder="Entrer le nom d'utilisateur">
+    <div class="label" style="margin-top:12px">Mot de passe</div>
+    <input id="loginPass" type="password" value="" autocomplete="current-password" placeholder="Entrer le mot de passe">
+    <div class="row" style="margin-top:16px"><div><button class="ok" onclick="loginDashboard()">Se connecter</button></div></div>
+    <div class="loginError" id="loginError"></div>
+  </div>
+</div>
+
+<div class="shell">
+  <h1>Dashboard de la machine de soudure Semi-Automatique</h1>
+  <div class="statusbar">
+    <div class="pill" id="grblPill">GRBL: inconnu</div>
+    <div class="pill" id="limitPill">Limites: inconnues</div>
+    <div class="pill" id="camPill">CAM: aucune</div>
+    <div class="pill" id="gerberPill">Gerber: aucun</div>
+    <button class="logoutBtn" onclick="logoutDashboard()">Déconnexion</button>
+  </div>
+
+  <div class="grid">
+    <section class="panel">
+      <div class="head"><div class="title">Entrées</div><div class="title">Caméra + Gerber</div></div>
+      <div class="body">
+        <div class="row"><div><div class="label">Backend Flask</div><input id="backendBase" value="http://127.0.0.1:5001"></div></div>
+        <div class="row"><div><button class="ok" onclick="testBackend()">Tester connexion backend</button></div></div>
+        <div class="row"><div><div class="label">URL ESP32-CAM</div><input id="streamUrl" value="http://192.168.1.126/capture"></div></div>
+        <div class="row"><div><button onclick="loadCamera()">Connecter image</button></div><div><button onclick="captureCamera()">Rafraîchir</button></div></div>
+        <hr style="border-color:#1e2d3d;margin:14px 0">
+        <div class="row"><div><div class="label">Fichier Gerber / TXT</div><input id="gerberFile" type="file" accept=".gbr,.txt,.ger,.pho,.gtl,.gbl,.gto,.gbo,.drl"></div></div>
+        <div class="row"><div><button onclick="uploadGerber()">1. Upload Gerber</button></div><div><button onclick="extractPoints()">2. Extraire points</button></div></div>
+        <div class="row"><div><button onclick="fitPointsToImage()">Ajuster à l'image</button></div><div><button onclick="previewOnImage()">Afficher points</button></div></div>
+        <div class="metricgrid" style="margin-top:12px"><div class="metric"><div class="v" id="metricGerberCount">0</div><div class="s">points extraits</div></div><div class="metric"><div class="v" id="metricSelected">0</div><div class="s">points soudés</div></div></div>
+        <div class="leftTools">
+          <div class="label">Jog manuel X/Y/Z</div>
+          <div class="notice">Reste appuyé sur X/Y/Z pour bouger en continu. Relâche pour arrêter.</div>
+          <div class="row" style="margin-top:10px">
+            <div><div class="label">Pas manuel X/Y (mm)</div><input id="jogStepXY" type="number" value="0.5" step="0.1"></div>
+            <div><div class="label">Pas manuel Z (mm)</div><input id="jogStepZ" type="number" value="0.1" step="0.1"></div>
+          </div>
+          <div class="jogGrid">
+            <div></div><button class="jogBtn" data-axis="Y" data-dir="1" onpointerdown="jogPress(event,'Y',1,this)" onpointerup="jogRelease(event)" onpointercancel="jogRelease(event)" onmousedown="jogPress(event,'Y',1,this)" onmouseup="jogRelease(event)" onmouseleave="jogRelease(event)" ontouchstart="jogPress(event,'Y',1,this)" ontouchend="jogRelease(event)">↑ Y+</button><div></div>
+            <button class="jogBtn" data-axis="X" data-dir="-1" onpointerdown="jogPress(event,'X',-1,this)" onpointerup="jogRelease(event)" onpointercancel="jogRelease(event)" onmousedown="jogPress(event,'X',-1,this)" onmouseup="jogRelease(event)" onmouseleave="jogRelease(event)" ontouchstart="jogPress(event,'X',-1,this)" ontouchend="jogRelease(event)">← X-</button><div></div><button class="jogBtn" data-axis="X" data-dir="1" onpointerdown="jogPress(event,'X',1,this)" onpointerup="jogRelease(event)" onpointercancel="jogRelease(event)" onmousedown="jogPress(event,'X',1,this)" onmouseup="jogRelease(event)" onmouseleave="jogRelease(event)" ontouchstart="jogPress(event,'X',1,this)" ontouchend="jogRelease(event)">X+ →</button>
+            <div></div><button class="jogBtn" data-axis="Y" data-dir="-1" onpointerdown="jogPress(event,'Y',-1,this)" onpointerup="jogRelease(event)" onpointercancel="jogRelease(event)" onmousedown="jogPress(event,'Y',-1,this)" onmouseup="jogRelease(event)" onmouseleave="jogRelease(event)" ontouchstart="jogPress(event,'Y',-1,this)" ontouchend="jogRelease(event)">↓ Y-</button><div></div>
+            <div></div><button class="jogBtn" data-axis="Z" data-dir="1" onpointerdown="jogPress(event,'Z',1,this)" onpointerup="jogRelease(event)" onpointercancel="jogRelease(event)" onmousedown="jogPress(event,'Z',1,this)" onmouseup="jogRelease(event)" onmouseleave="jogRelease(event)" ontouchstart="jogPress(event,'Z',1,this)" ontouchend="jogRelease(event)">Z+</button><button class="jogBtn" data-axis="Z" data-dir="-1" onpointerdown="jogPress(event,'Z',-1,this)" onpointerup="jogRelease(event)" onpointercancel="jogRelease(event)" onmousedown="jogPress(event,'Z',-1,this)" onmouseup="jogRelease(event)" onmouseleave="jogRelease(event)" ontouchstart="jogPress(event,'Z',-1,this)" ontouchend="jogRelease(event)">Z-</button>
+          </div>
+
+          <hr style="border-color:#1e2d3d;margin:14px 0">
+          <div class="label">Points sélectionnés</div><div class="pointList" id="pointList"></div>
+          <div class="label" style="margin-top:12px">Coordonnées validées</div>
+          <div class="tablewrap"><table class="table"><thead><tr><th>#</th><th>X gerber</th><th>Y gerber</th><th>X machine</th><th>Y machine</th></tr></thead><tbody id="coordsBody"></tbody></table></div>
+          <div class="label" style="margin-top:12px">Journal</div><pre id="logText">Prêt.</pre>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="head"><div class="title">Image réelle + validation</div><div class="title" id="viewerStatus">Aucune image</div></div>
+      <div class="body">
+        <div class="viewerWrap"><img id="streamImage" alt="ESP32-CAM" crossorigin="anonymous"><canvas id="overlayCanvas" width="900" height="675"></canvas></div>
+        <div class="row" style="margin-top:10px"><div><button onclick="validateAllVisible()">Tout valider</button></div><div><button onclick="clearValidation()">Effacer validation</button></div><div><button onclick="generateGcode()">Générer G-code</button></div></div>
+        <div class="label" style="margin-top:10px">G-code / Réponse serveur</div><pre id="gcodePreview">Aucun G-code.</pre>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="head"><div class="title">Commande CNC</div><div class="title">Calibration</div></div>
+      <div class="body">
+        <input id="safeZ" type="hidden" value="8">
+        <input id="workZ" type="hidden" value="0.2">
+        <div class="row">
+          <div><button class="ok" onclick="captureZPosition('safe')">Capturer Z sécurité actuel</button></div>
+          <div><button class="ok" onclick="captureZPosition('work')">Capturer Z soudure actuel</button></div>
+        </div>
+        <div class="pill" id="zLiveStatus" style="margin-bottom:10px">Z sécurité: 8 | Z soudure: 0.2</div>
+        <div class="row">
+          <div><button onclick="testCapturedZOnly('safe')">Tester Z sécurité</button></div>
+          <div><button onclick="testCapturedZOnly('work')">Tester Z soudure</button></div>
+        </div>
+        <div class="row"><div><div class="label">Temps soudure (s)</div><input id="dwellS" type="number" value="0.8" step="0.1"></div><div><div class="label">Pause entre points (s)</div><input id="pauseBetweenS" type="number" value="0.5" step="0.1"></div></div>
+        <div class="row"><div><div class="label">Feed XY</div><input id="feedXY" type="number" value="800" step="10"></div><div><div class="label">Feed Z</div><input id="feedZ" type="number" value="40" step="10"></div></div>
+
+        <div class="row"><div><button onclick="getStatus()">Statut GRBL</button></div><div><button onclick="getLimitStatus()">Statut limites X/Y/Z</button></div></div>
+        <div class="row"><div><button onclick="unlockGRBL()">Unlock</button></div></div>
+        <div class="row"><div><button class="ok" onclick="setMachineOriginManual()">Définir origine machine</button></div><div><button class="warn" onclick="homingGRBL()">Retour origine machine</button></div></div>
+        <div class="row"><div><button onclick="softResetGRBL()">Soft reset</button></div><div><button onclick="stopGRBL()">Stop</button></div><div><button class="danger" onclick="emergencyGRBL()">Emergency</button></div></div>
+        <div class="row"><div><button class="ok" onclick="sendSelectedToGRBL()">Envoyer points sélectionnés</button></div></div>
+        <div class="row"><div><button class="warn" onclick="sendAllPointsToGRBL()">Envoyer TOUS les points extraits</button></div></div>
+        <div class="row"><div><button onclick="testFirstPointAtSafeZ()">Tester point 1 à Z sécurité</button></div></div>
+
+        <hr style="border-color:#1e2d3d;margin:14px 0">
+        <div class="label">Calibration PCB par 3 points de soudure</div>
+        <input id="pcbAxG" type="hidden" value="0">
+        <input id="pcbAyG" type="hidden" value="0">
+        <input id="pcbBxG" type="hidden" value="0">
+        <input id="pcbByG" type="hidden" value="0">
+        <input id="pcbCxG" type="hidden" value="0">
+        <input id="pcbCyG" type="hidden" value="0">
+        <input id="pcbDxG" type="hidden" value="0">
+        <input id="pcbDyG" type="hidden" value="0">
+
+        <div class="row" style="margin-top:10px">
+          <div><div class="label">N° point A</div><input id="pcbAIndex" type="text" value="1"></div>
+          <div><button onclick="fillCornerFromGerberPoint('A')">Remplir A depuis point</button></div>
+          <div><button class="ok" onclick="capturePcbCorner('A')">Capturer A réel</button></div>
+        </div>
+        <div class="row">
+          <div><div class="label">N° point B</div><input id="pcbBIndex" type="text" value="2"></div>
+          <div><button onclick="fillCornerFromGerberPoint('B')">Remplir B depuis point</button></div>
+          <div><button class="ok" onclick="capturePcbCorner('B')">Capturer B réel</button></div>
+        </div>
+        <div class="row">
+          <div><div class="label">N° point C</div><input id="pcbCIndex" type="text" value="3"></div>
+          <div><button onclick="fillCornerFromGerberPoint('C')">Remplir C depuis point</button></div>
+          <div><button class="ok" onclick="capturePcbCorner('C')">Capturer C réel</button></div>
+        </div>
+        <div class="row">
+          <div><div class="label">N° point D vérification</div><input id="pcbDIndex" type="text" value="4"></div>
+          <div><button onclick="fillCornerFromGerberPoint('D')">Remplir D depuis point</button></div>
+          <div><button onclick="capturePcbCorner('D')">Capturer D vérification</button></div>
+        </div>
+        <div class="notice">Utilise 3 pads éloignés et non alignés. Pour chaque point : remplir depuis le numéro Gerber, placer le bec au centre du même pad réel, puis capturer.</div>
+        <div class="row"><div><button class="ok" onclick="activatePcbThreePointCalibration()">Activer + sauvegarder calibration</button></div></div>
+        <div class="row"><div><button onclick="loadPcbCalibrationLocal(true)">Charger position sauvegardée</button></div><div><button onclick="clearPcbCalibration()">Désactiver calibration PCB</button></div></div>
+        <div class="row"><div><button class="danger" onclick="deletePcbCalibrationLocal()">Supprimer position sauvegardée</button></div></div>
+        <div class="notice" id="pcbCalibStatus">Calibration PCB : non active.</div>
+
+        <hr style="border-color:#1e2d3d;margin:14px 0">
+        <div class="label">Calibration précision moteurs / steps-mm</div>
+        <div class="row" style="margin-top:10px"><div><button onclick="readGrblSteps()">Lire $100 / $101 / $102</button></div></div>
+        <div class="row">
+          <div><div class="label">Axe</div><select id="calibAxis"><option value="X">X</option><option value="Y">Y</option><option value="Z">Z</option></select></div>
+          <div><div class="label">Steps actuels</div><input id="calibCurrentSteps" type="text" value="80"></div>
+        </div>
+        <div class="row">
+          <div><div class="label">Distance demandée mm</div><input id="calibCommanded" type="text" value="10"></div>
+          <div><div class="label">Distance mesurée réelle mm</div><input id="calibMeasured" type="text" value="10"></div>
+        </div>
+        <div class="row"><div><button onclick="calibrationMove(1)">Déplacer + distance</button></div><div><button onclick="calibrationMove(-1)">Déplacer - distance</button></div></div>
+        <div class="notice" id="stepsCalcPreview">Résultat steps/mm : non calculé.</div>
+        <div class="row"><div><button class="ok" onclick="applyStepsCalibration()">Calculer et appliquer steps/mm</button></div></div>
+
+      </div>
+    </section>
+  </div>
+</div>
+
+<script>
+
+const LOGIN_USER = "admin";
+const LOGIN_PASS = "1234";
+const LOGIN_STORAGE_KEY = "cnc_soudure_dashboard_login_ok";
+
+function showDashboardIfLogged(){
+  const ok = localStorage.getItem(LOGIN_STORAGE_KEY) === "1";
+  const overlay = document.getElementById("loginOverlay");
+  if(overlay) overlay.style.display = ok ? "none" : "flex";
+}
+
+function loginDashboard(){
+  const user = (document.getElementById("loginUser")?.value || "").trim();
+  const pass = (document.getElementById("loginPass")?.value || "").trim();
+  if(user === LOGIN_USER && pass === LOGIN_PASS){
+    localStorage.setItem(LOGIN_STORAGE_KEY, "1");
+    setText("loginError", "");
+    showDashboardIfLogged();
+    log("Connexion utilisateur réussie.");
+  }else{
+    setText("loginError", "Nom d'utilisateur ou mot de passe incorrect.");
+  }
+}
+
+function logoutDashboard(){
+  localStorage.removeItem(LOGIN_STORAGE_KEY);
+  showDashboardIfLogged();
+}
+
+document.addEventListener("keydown", function(e){
+  if(e.key === "Enter" && document.getElementById("loginOverlay")?.style.display !== "none"){
+    loginDashboard();
+  }
+});
+
+let uploadedFilename='', gerberPoints=[], selected=new Set();
+let mapMinX=null, mapMaxX=null, mapMinY=null, mapMaxY=null;
+let pcbCalib={active:false,A:null,B:null,C:null,D:null,mode:'none'};
+const paddingPx=60, pointRadius=8;
+const img=document.getElementById('streamImage');
+const canvas=document.getElementById('overlayCanvas');
+const ctx=canvas.getContext('2d');
+
+function baseUrl(){return (document.getElementById('backendBase').value||'').trim().replace(/\/+$/,'')}
+function setText(id,v){const e=document.getElementById(id); if(e)e.textContent=v}
+function setPill(id,v){setText(id,v)}
+function log(msg){const b=document.getElementById('logText'); const t=new Date().toLocaleTimeString('fr-FR'); b.textContent=`[${t}] ${msg}\n`+b.textContent}
+function show(obj){setText('gcodePreview', typeof obj==='string'?obj:JSON.stringify(obj,null,2))}
+
+function parseNumberFR(value){
+  // Accepte les nombres écrits en français avec virgule : 5,102 => 5.102
+  // Supprime aussi les espaces inutiles.
+  if(value === null || value === undefined) return 0;
+  const cleaned = String(value).trim().replace(/\s/g,'').replace(',', '.');
+  const n = Number.parseFloat(cleaned);
+  return Number.isFinite(n) ? n : 0;
+}
+
+async function apiGet(p){
+  const r=await fetch(baseUrl()+p);
+  const d=await r.json().catch(()=>({status:'error',message:'Réponse non JSON'}));
+  if(!r.ok || d.status==='error') throw new Error(d.message||('Erreur '+r.status));
+  return d;
+}
+async function apiPost(p,payload={}){
+  const r=await fetch(baseUrl()+p,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+  const d=await r.json().catch(()=>({status:'error',message:'Réponse non JSON'}));
+  if(!r.ok || d.status==='error') throw new Error(d.message||('Erreur '+r.status));
+  return d;
+}
+
+async function testBackend(){try{const d=await apiGet('/'); show(d); log('Backend connecté.'); setPill('grblPill','Backend: OK')}catch(e){alert('Backend non connecté: '+e.message); log(e.message)}}
+
+function loadCamera(){const url=document.getElementById('streamUrl').value.trim(); if(!url){alert('Entre URL ESP32-CAM'); return} img.src=url+(url.includes('?')?'&':'?')+'t='+Date.now(); log('Chargement caméra...')}
+function captureCamera(){loadCamera()}
+img.onload=()=>{setPill('camPill','CAM: image chargée'); setText('viewerStatus',`${img.naturalWidth} x ${img.naturalHeight}`); redraw()}
+img.onerror=()=>{setPill('camPill','CAM: erreur'); log('Erreur caméra')}
+
+async function uploadGerber(){
+  const input=document.getElementById('gerberFile');
+  if(!input.files.length){alert('Choisis fichier Gerber');return}
+  const fd=new FormData(); fd.append('file',input.files[0]);
+  try{const r=await fetch(baseUrl()+'/upload_gerber',{method:'POST',body:fd}); const d=await r.json(); if(!r.ok||d.status==='error')throw new Error(d.message); uploadedFilename=d.filename; gerberPoints=[]; selected=new Set(); setPill('gerberPill','Gerber: '+uploadedFilename); setText('metricGerberCount','0'); setText('metricSelected','0'); log('Upload OK: '+uploadedFilename)}catch(e){alert('Upload échoué: '+e.message); log(e.message)}
+}
+async function extractPoints(){
+  if(!uploadedFilename){alert('Upload d’abord');return}
+  try{const d=await apiPost('/extract_points',{filename:uploadedFilename}); gerberPoints=d.points||[]; selected=new Set(); setText('metricGerberCount',gerberPoints.length); setText('metricSelected','0'); if(gerberPoints.length){computeBounds(gerberPoints); fitPointsToImage()} renderSelection(); redraw(); log('Extraction OK: '+gerberPoints.length+' points')}catch(e){alert('Extraction échouée: '+e.message); log(e.message)}
+}
+function computeBounds(points){const xs=points.map(p=>p.x), ys=points.map(p=>p.y); mapMinX=Math.min(...xs); mapMaxX=Math.max(...xs); mapMinY=Math.min(...ys); mapMaxY=Math.max(...ys)}
+function fitPointsToImage(){if(!gerberPoints.length){alert('Extrais points');return} computeBounds(gerberPoints); redraw(); log('Points ajustés à l’image')}
+function gerberToImagePoint(p){if(mapMinX===null)return{x:100,y:100}; const spanX=Math.max(.001,mapMaxX-mapMinX), spanY=Math.max(.001,mapMaxY-mapMinY); const drawW=canvas.width-2*paddingPx, drawH=canvas.height-2*paddingPx; const scale=Math.min(drawW/spanX,drawH/spanY); const usedW=spanX*scale, usedH=spanY*scale; const startX=(canvas.width-usedW)/2, startY=(canvas.height-usedH)/2; return{x:startX+(p.x-mapMinX)*scale,y:canvas.height-(startY+(p.y-mapMinY)*scale)}}
+function imageCoordsFromMouse(evt){const r=canvas.getBoundingClientRect(); return{x:(evt.clientX-r.left)*(canvas.width/r.width),y:(evt.clientY-r.top)*(canvas.height/r.height)}}
+canvas.addEventListener('click',evt=>{if(!gerberPoints.length)return; const m=imageCoordsFromMouse(evt); let best=-1,bestD=Infinity; gerberPoints.forEach((p,i)=>{const s=gerberToImagePoint(p); const d=Math.hypot(m.x-s.x,m.y-s.y); if(d<bestD){bestD=d; best=i}}); if(best>=0 && bestD<=pointRadius+6){selected.has(best)?selected.delete(best):selected.add(best); renderSelection(); redraw()}});
+function redraw(){ctx.clearRect(0,0,canvas.width,canvas.height); gerberPoints.forEach((p,i)=>{const s=gerberToImagePoint(p), sel=selected.has(i); ctx.beginPath(); ctx.arc(s.x,s.y,sel?pointRadius+2:pointRadius,0,Math.PI*2); ctx.fillStyle=sel?'#00ff88':'#00d4ff'; ctx.fill(); if(i<60){ctx.fillStyle='#c8dae8'; ctx.font='11px Arial'; ctx.fillText(String(i+1),s.x+7,s.y-7)}})}
+function previewOnImage(){redraw(); log('Prévisualisation OK')}
+function validateAllVisible(){selected=new Set(gerberPoints.map((_,i)=>i)); renderSelection(); redraw()}
+function clearValidation(){selected=new Set(); renderSelection(); redraw()}
+function selectedPoints(){return[...selected].sort((a,b)=>a-b).map(i=>({...gerberPoints[i],idx:i}))}
+function allGerberPoints(){return gerberPoints.map((p,i)=>({...p,idx:i}))}
+
+function fillCornerFromGerberPoint(which){
+  if(!gerberPoints.length){alert('Charge et extrais le Gerber d’abord.');return}
+  const idxEl = document.getElementById(`pcb${which}Index`);
+  if(!idxEl){alert('Champ N° point introuvable pour '+which); return}
+  const n = Math.round(parseNumberFR(idxEl.value || '1'));
+  if(n < 1 || n > gerberPoints.length){
+    alert(`Numéro point invalide. Il faut un nombre entre 1 et ${gerberPoints.length}.`);
+    return;
+  }
+  const p = gerberPoints[n-1];
+  document.getElementById(`pcb${which}xG`).value = p.x.toFixed(3);
+  document.getElementById(`pcb${which}yG`).value = p.y.toFixed(3);
+  log(`${which} rempli depuis le point Gerber n°${n} : (${p.x.toFixed(3)}, ${p.y.toFixed(3)})`);
+}
+
+function machinePointFromGerber(p){
+  // Calibration fiable par 3 points quelconques.
+  // A/B/C peuvent être 3 points de soudure réels ou 3 coins PCB.
+  // Il faut capturer exactement les mêmes références côté Gerber et côté machine.
+  if(pcbCalib.active && pcbCalib.A && pcbCalib.B && pcbCalib.C){
+    const Ag=pcbCalib.A.g, Bg=pcbCalib.B.g, Cg=pcbCalib.C.g;
+    const Am=pcbCalib.A.m, Bm=pcbCalib.B.m, Cm=pcbCalib.C.m;
+
+    const g1x = Bg.x - Ag.x, g1y = Bg.y - Ag.y;
+    const g2x = Cg.x - Ag.x, g2y = Cg.y - Ag.y;
+    const det = g1x*g2y - g1y*g2x;
+
+    if(Math.abs(det) > 0.000001){
+      const dx = p.x - Ag.x;
+      const dy = p.y - Ag.y;
+      const alpha = (dx*g2y - dy*g2x) / det;
+      const beta  = (g1x*dy - g1y*dx) / det;
+
+      return {
+        x: Am.x + alpha*(Bm.x-Am.x) + beta*(Cm.x-Am.x),
+        y: Am.y + alpha*(Bm.y-Am.y) + beta*(Cm.y-Am.y)
+      };
+    }
+  }
+
+  // Ancienne compatibilité 2 points.
+  if(pcbCalib.active && pcbCalib.A && pcbCalib.B && pcbCalib.a !== undefined && pcbCalib.b !== undefined){
+    const dx=p.x-pcbCalib.A.g.x, dy=p.y-pcbCalib.A.g.y;
+    return {x:pcbCalib.A.m.x + pcbCalib.a*dx - pcbCalib.b*dy, y:pcbCalib.A.m.y + pcbCalib.b*dx + pcbCalib.a*dy};
+  }
+  return{x:p.x,y:p.y};
+}
+function renderSelection(){const list=document.getElementById('pointList'), body=document.getElementById('coordsBody'); list.innerHTML=''; body.innerHTML=''; const pts=selectedPoints(); if(!pts.length){list.innerHTML='<div style="color:#6f8ea7">Aucun point validé.</div>';return} pts.forEach((p,k)=>{const m=machinePointFromGerber(p); const div=document.createElement('div'); div.className='pointItem'; div.innerHTML=`<div class="badge">${k+1}</div><div><strong>Point ${p.idx+1}</strong><div style="font-size:12px;color:#6f8ea7">Gerber (${p.x.toFixed(3)}, ${p.y.toFixed(3)}) → Machine (${m.x.toFixed(3)}, ${m.y.toFixed(3)})</div></div><button class="smallbtn" onclick="toggleByIndex(${p.idx})">Retirer</button>`; list.appendChild(div); const tr=document.createElement('tr'); tr.innerHTML=`<td>${k+1}</td><td>${p.x.toFixed(3)}</td><td>${p.y.toFixed(3)}</td><td>${m.x.toFixed(3)}</td><td>${m.y.toFixed(3)}</td>`; body.appendChild(tr)})}
+function toggleByIndex(i){selected.has(i)?selected.delete(i):selected.add(i); renderSelection(); redraw()}
+
+
+function calibrationErrorD(){
+  if(!(pcbCalib.active && pcbCalib.D && pcbCalib.D.g && pcbCalib.D.m)) return null;
+  const pred = machinePointFromGerber({x:pcbCalib.D.g.x, y:pcbCalib.D.g.y, idx:-1});
+  return Math.hypot(pred.x-pcbCalib.D.m.x, pred.y-pcbCalib.D.m.y);
+}
+
+
+function zReadyOrWarn(){
+  const safe = parseNumberFR(document.getElementById('safeZ')?.value || '0');
+  const work = parseNumberFR(document.getElementById('workZ')?.value || '0');
+  if(!Number.isFinite(safe) || !Number.isFinite(work)){
+    alert('Z sécurité ou Z soudure invalide.');
+    return false;
+  }
+  if(Math.abs(safe - work) < 0.05){
+    alert('Z sécurité et Z soudure sont presque identiques. Capture les deux positions séparément.');
+    return false;
+  }
+  return true;
+}
+
+function calibrationReadyOrWarn(){
+  if(!(pcbCalib.active && pcbCalib.A && pcbCalib.B && pcbCalib.C)){
+    alert('Calibration PCB non active. Il faut capturer A, B et C puis activer la calibration.');
+    return false;
+  }
+  const errD = calibrationErrorD();
+  if(errD !== null && errD > 3.0){
+    return confirm(`Erreur D = ${errD.toFixed(3)} mm. C'est élevé. Voulez-vous continuer quand même ?`);
+  }
+  if(errD !== null && errD > 1.5){
+    log(`Avertissement : erreur D = ${errD.toFixed(3)} mm, mais la calibration reste autorisée pour prototype.`);
+  }
+  return true;
+}
+
+function buildGcodeFromPoints(points, startIndex=0, totalOverride=null){
+  const safeZ=parseNumberFR(document.getElementById('safeZ').value||'8');
+  const workZ=parseNumberFR(document.getElementById('workZ').value||'0.2');
+  const dwell=Math.max(0,parseNumberFR(document.getElementById('dwellS').value||'0.8'));
+  const pause=Math.max(0,parseNumberFR(document.getElementById('pauseBetweenS').value||'0.5'));
+  const feedXY=parseNumberFR(document.getElementById('feedXY').value||'800');
+  const feedZ=parseNumberFR(document.getElementById('feedZ').value||'40');
+
+  if(!points || !points.length) return [];
+
+  // Sécurité : Z sécurité et Z soudure doivent être deux positions ABSOLUES capturées.
+  // Le code ne calcule pas depuis la position actuelle.
+  const total = totalOverride || points.length;
+  const g=[
+    '; G-code soudure point par point - Z absolu capturé',
+    'G21',
+    'G90'
+  ];
+
+  points.forEach((p,k)=>{
+    const m=machinePointFromGerber(p);
+    const n = startIndex + k + 1;
+    g.push(`; Point ${n} / ${total} - Gerber index ${p.idx+1}`);
+    g.push(`G1 Z${safeZ.toFixed(3)} F${feedZ.toFixed(1)}`);
+    g.push(`G1 X${m.x.toFixed(3)} Y${m.y.toFixed(3)} F${feedXY.toFixed(1)}`);
+    g.push(`G1 Z${workZ.toFixed(3)} F${feedZ.toFixed(1)}`);
+    g.push(`G4 P${dwell.toFixed(3)}`);
+    g.push(`G1 Z${safeZ.toFixed(3)} F${feedZ.toFixed(1)}`);
+    if(pause>0) g.push(`G4 P${pause.toFixed(3)}`);
+  });
+
+  return g;
+}
+function buildGcodeForSelected(){
+  const safeZ=parseNumberFR(document.getElementById('safeZ').value||'8'),
+        workZ=parseNumberFR(document.getElementById('workZ').value||'0.2'),
+        dwell=Math.max(0,parseNumberFR(document.getElementById('dwellS').value||'0.8')),
+        pause=Math.max(0,parseNumberFR(document.getElementById('pauseBetweenS').value||'0.5')),
+        feedXY=parseNumberFR(document.getElementById('feedXY').value||'500'),
+        feedZ=parseNumberFR(document.getElementById('feedZ').value||'40');
+  const g=['; G-code soudure','G21','G90',`G1 Z${safeZ.toFixed(3)} F${feedZ.toFixed(1)}`];
+  selectedPoints().forEach((p,k)=>{
+    const m=machinePointFromGerber(p);
+    g.push(`; Point ${k+1} / Gerber ${p.idx+1}`);
+    g.push(`G1 Z${safeZ.toFixed(3)} F${feedZ.toFixed(1)}`);
+    g.push(`G1 X${m.x.toFixed(3)} Y${m.y.toFixed(3)} F${feedXY.toFixed(1)}`);
+    g.push(`G1 Z${workZ.toFixed(3)} F${feedZ.toFixed(1)}`);
+    g.push(`G4 P${dwell.toFixed(3)}`);
+    g.push(`G1 Z${safeZ.toFixed(3)} F${feedZ.toFixed(1)}`);
+    if(pause>0)g.push(`G4 P${pause.toFixed(3)}`)
+  });
+  g.push(`G1 Z${safeZ.toFixed(3)} F${feedZ.toFixed(1)}`);
+  return g
+}
+async function generateGcode(){
+  const pts = selected.size ? selectedPoints() : allGerberPoints();
+  if(!pts.length){alert('Charge et extrais le Gerber d’abord.'); return}
+  const lines=buildGcodeFromPoints(pts);
+  show(lines.join('\n'));
+  log(`G-code généré pour ${pts.length} point(s)`)
+}
+
+
+async function testCapturedZOnly(kind){
+  const target = kind === 'safe'
+    ? parseNumberFR(document.getElementById('safeZ').value||'0')
+    : parseNumberFR(document.getElementById('workZ').value||'0');
+  const feedZ = parseNumberFR(document.getElementById('feedZ').value||'40');
+  if(!confirm(`Tester ${kind==='safe'?'Z sécurité':'Z soudure'} = ${target.toFixed(3)} mm ?`)) return;
+  await sendLinesToGRBL(['G21','G90',`G1 Z${target.toFixed(3)} F${feedZ.toFixed(1)}`], kind==='safe'?'Test Z sécurité':'Test Z soudure');
+}
+
+async function testFirstPointAtSafeZ(){
+  if(!zReadyOrWarn()) return;
+  if(!zReadyOrWarn()) return;
+  if(!calibrationReadyOrWarn()) return;
+  if(!gerberPoints.length){alert('Charge et extrais le Gerber d’abord.');return}
+  const p = {...gerberPoints[0], idx:0};
+  const m = machinePointFromGerber(p);
+  const safeZ=parseNumberFR(document.getElementById('safeZ').value||'8');
+  const feedXY=parseNumberFR(document.getElementById('feedXY').value||'800');
+  const feedZ=parseNumberFR(document.getElementById('feedZ').value||'40');
+  const lines=['G21','G90',`G1 Z${safeZ.toFixed(3)} F${feedZ.toFixed(1)}`,`G1 X${m.x.toFixed(3)} Y${m.y.toFixed(3)} F${feedXY.toFixed(1)}`];
+  if(!confirm(`Tester point 1 à Z sécurité seulement ?\nX=${m.x.toFixed(3)} Y=${m.y.toFixed(3)} Z=${safeZ.toFixed(3)}`)) return;
+  await sendLinesToGRBL(lines, 'Test point 1 Z sécurité');
+}
+
+async function sendLinesToGRBL(lines, label){
+  try{
+    setText('metricSelected','0');
+    const d=await apiPost('/send_gcode_sequence',{lines});
+    show(d);
+    const requested = lines.filter(x=>String(x).startsWith('; Point')).length;
+    const soldered = (d.soldered_points !== undefined) ? d.soldered_points : requested;
+    setText('metricSelected', soldered);
+    log(`${label} : ${soldered}/${requested} point(s) soudé(s)`);
+  }catch(e){alert('Envoi échoué: '+e.message); log(e.message)}
+}
+
+async function sendPointsSequential(points, label){
+  if(!points || !points.length){alert('Aucun point à envoyer.'); return;}
+  setText('metricSelected','0');
+  let soldered = 0;
+  const total = points.length;
+
+  for(let i=0; i<points.length; i++){
+    const p = points[i];
+    const lines = buildGcodeFromPoints([p], i, total);
+    show(`Point ${i+1}/${total} en cours...\n\n` + lines.join('\n'));
+    log(`Début soudure point ${i+1}/${total}`);
+
+    try{
+      const d = await apiPost('/send_gcode_sequence',{lines});
+      show(d);
+
+      const results = Array.isArray(d.results) ? d.results : [];
+      const hasCritical = results.some(r=>{
+        const resp = String(r.response || '').toLowerCase();
+        // On arrête seulement pour une vraie erreur GRBL ou série.
+        // On ignore idle_timeout car souvent le mouvement est déjà exécuté mais le statut Idle n'est pas lu.
+        return resp.startsWith('error') || resp.startsWith('alarm') ||
+               resp.includes('serial_error') || resp.includes('stopped_by_user') ||
+               resp === 'timeout';
+      });
+
+      if(d.status !== 'ok' || hasCritical){
+        alert(`Erreur réelle au point ${i+1}/${total}. Vérifie le journal GRBL.`);
+        log(`Arrêt : erreur réelle détectée au point ${i+1}/${total}`);
+        break;
+      }
+
+      soldered += 1;
+      setText('metricSelected', soldered);
+      log(`Point ${i+1}/${total} soudé`);
+    }catch(e){
+      alert(`Erreur au point ${i+1}/${total}: `+e.message);
+      log(`Erreur point ${i+1}/${total}: `+e.message);
+      break;
+    }
+  }
+
+  log(`${label} terminé : ${soldered}/${total} point(s) soudé(s)`);
+  show(`${label} terminé : ${soldered}/${total} point(s) soudé(s).`);
+}
+async function sendSelectedToGRBL(){
+  if(!zReadyOrWarn()) return;
+  if(!calibrationReadyOrWarn()) return;
+  let pts=selectedPoints();
+  if(!pts.length){
+    if(!gerberPoints.length){alert('Charge et extrais le Gerber d’abord.');return}
+    if(!confirm('Aucun point sélectionné. Voulez-vous envoyer TOUS les points extraits ?')) return;
+    pts=allGerberPoints();
+    selected=new Set(gerberPoints.map((_,i)=>i));
+    renderSelection(); redraw();
+  }
+  await sendPointsSequential(pts, selected.size?'Points sélectionnés':'Tous les points extraits');
+}
+async function sendAllPointsToGRBL(){
+  if(!zReadyOrWarn()) return;
+  if(!zReadyOrWarn()) return;
+  if(!calibrationReadyOrWarn()) return;
+  if(!gerberPoints.length){alert('Charge et extrais le Gerber d’abord.');return}
+  const pts=allGerberPoints();
+  if(!confirm(`Confirmer l’envoi de TOUS les ${pts.length} points extraits ?`)) return;
+  selected=new Set(gerberPoints.map((_,i)=>i));
+  renderSelection(); redraw();
+  await sendPointsSequential(pts, 'Tous les points extraits');
+}
+
+const PCB_CALIB_STORAGE_KEY = 'cnc_soudure_pcb_calibration_3coins_v2';
+function savePcbCalibrationLocal(){
+  try{
+    const payload={active:!!pcbCalib.active, mode:pcbCalib.mode||'none', A:pcbCalib.A, B:pcbCalib.B, C:pcbCalib.C, D:pcbCalib.D, a:pcbCalib.a, b:pcbCalib.b, savedAt:new Date().toISOString()};
+    localStorage.setItem(PCB_CALIB_STORAGE_KEY, JSON.stringify(payload));
+    log('Position PCB 3 coins sauvegardée dans le navigateur.');
+  }catch(e){ log('Sauvegarde PCB impossible: '+e.message); }
+}
+function loadPcbCalibrationLocal(showAlert=false){
+  try{
+    const txt=localStorage.getItem(PCB_CALIB_STORAGE_KEY);
+    if(!txt){ if(showAlert) alert('Aucune position PCB sauvegardée.'); return false; }
+    const payload=JSON.parse(txt);
+    if(!payload || !payload.A || !payload.B){ if(showAlert) alert('Position PCB sauvegardée invalide.'); return false; }
+    pcbCalib.A=payload.A; pcbCalib.B=payload.B; pcbCalib.C=payload.C||null; pcbCalib.D=payload.D||null; pcbCalib.a=Number(payload.a); pcbCalib.b=Number(payload.b); pcbCalib.mode=payload.mode || (payload.C?'3points':'2points'); pcbCalib.active=!!payload.active;
+    if(pcbCalib.A && pcbCalib.A.g){ document.getElementById('pcbAxG').value=pcbCalib.A.g.x; document.getElementById('pcbAyG').value=pcbCalib.A.g.y; }
+    if(pcbCalib.B && pcbCalib.B.g){ document.getElementById('pcbBxG').value=pcbCalib.B.g.x; document.getElementById('pcbByG').value=pcbCalib.B.g.y; }
+    if(pcbCalib.C && pcbCalib.C.g){ document.getElementById('pcbCxG').value=pcbCalib.C.g.x; document.getElementById('pcbCyG').value=pcbCalib.C.g.y; }
+    if(pcbCalib.D && pcbCalib.D.g){ document.getElementById('pcbDxG').value=pcbCalib.D.g.x; document.getElementById('pcbDyG').value=pcbCalib.D.g.y; }
+    setText('pcbCalibStatus',`Calibration PCB chargée : active=${pcbCalib.active?'oui':'non'}, mode=${pcbCalib.mode}. Sauvegardée le ${payload.savedAt||'date inconnue'}.`);
+    renderSelection(); log('Position PCB sauvegardée chargée.'); if(showAlert) alert('Position PCB chargée.'); return true;
+  }catch(e){ if(showAlert) alert('Chargement PCB échoué: '+e.message); log('Chargement PCB échoué: '+e.message); return false; }
+}
+function deletePcbCalibrationLocal(){
+  if(!confirm('Supprimer la position PCB sauvegardée ?')) return;
+  localStorage.removeItem(PCB_CALIB_STORAGE_KEY);
+  clearPcbCalibration();
+  log('Position PCB sauvegardée supprimée.');
+}
+
+async function capturePcbCorner(which){
+  try{
+    const d=await apiGet('/status');
+    const pos=d.position;
+    if(!pos){alert('Position GRBL introuvable. Clique Statut GRBL et vérifie WPos/MPos.');return}
+    const gxEl=document.getElementById(`pcb${which}xG`);
+    const gyEl=document.getElementById(`pcb${which}yG`);
+    if(!gxEl || !gyEl){alert('Champ Gerber introuvable pour '+which);return}
+    pcbCalib[which]={g:{x:parseNumberFR(gxEl.value||'0'),y:parseNumberFR(gyEl.value||'0')},m:{x:pos.x,y:pos.y}};
+    setText('pcbCalibStatus',`Coin ${which} capturé : Gerber(${pcbCalib[which].g.x.toFixed(3)}, ${pcbCalib[which].g.y.toFixed(3)}) → Machine(${pos.x.toFixed(3)}, ${pos.y.toFixed(3)})`);
+    log(`Coin ${which} PCB capturé.`);
+  }catch(e){alert('Capture coin PCB échouée: '+e.message);log(e.message)}
+}
+function activatePcbThreePointCalibration(){
+  if(!pcbCalib.A || !pcbCalib.B || !pcbCalib.C){
+    alert('Capture A, B et C réels avant activation.');
+    return;
+  }
+
+  const Ag=pcbCalib.A.g, Bg=pcbCalib.B.g, Cg=pcbCalib.C.g;
+  const det = (Bg.x-Ag.x)*(Cg.y-Ag.y) - (Bg.y-Ag.y)*(Cg.x-Ag.x);
+  if(Math.abs(det) < 0.000001){
+    alert('A, B et C sont presque alignés. Choisis 3 points de soudure éloignés formant un triangle.');
+    return;
+  }
+
+  pcbCalib.active = true;
+  pcbCalib.mode = '3points';
+  savePcbCalibrationLocal();
+
+  let msg = 'Calibration PCB 3 points active.';
+  if(pcbCalib.D && pcbCalib.D.g && pcbCalib.D.m){
+    const pred = machinePointFromGerber({x:pcbCalib.D.g.x, y:pcbCalib.D.g.y, idx:-1});
+    const err = Math.hypot(pred.x-pcbCalib.D.m.x, pred.y-pcbCalib.D.m.y);
+    msg += ` Erreur D = ${err.toFixed(3)} mm. Si > 3 mm, refaire A/B/C.`;
+  }
+  setText('pcbCalibStatus', msg);
+  renderSelection();
+  redraw();
+  log(msg);
+}
+function activatePcbTwoPointCalibration(){ activatePcbThreePointCalibration(); }
+function togglePcbMirrorY(){ alert('Dans cette version, le sens Y est défini par le coin C haut-gauche. Pas besoin de miroir Y.'); }
+function clearPcbCalibration(){
+  pcbCalib.active=false;
+  pcbCalib.mode='none';
+  setText('pcbCalibStatus','Calibration PCB : non active.');
+  renderSelection();
+  log('Calibration PCB désactivée pour cette session. La position sauvegardée reste disponible.');
+}
+async function readGrblSteps(){
+  try{
+    const d=await apiGet('/grbl_settings');
+    show(d);
+    const axis=document.getElementById('calibAxis').value;
+    const val=d.steps && d.steps[axis] ? d.steps[axis] : 0;
+    if(val>0) document.getElementById('calibCurrentSteps').value=val;
+    log('Steps GRBL lus : $100/$101/$102');
+  }catch(e){log('Lecture steps ignorée: '+e.message)}
+}
+document.addEventListener('change',async e=>{
+  if(e.target && e.target.id==='calibAxis'){
+    try{
+      const d=await apiGet('/grbl_settings');
+      const axis=document.getElementById('calibAxis').value;
+      const val=d.steps && d.steps[axis] ? d.steps[axis] : 0;
+      if(val>0) document.getElementById('calibCurrentSteps').value=val;
+    }catch(_){ }
+  }
+});
+async function calibrationMove(sign){
+  const axis=document.getElementById('calibAxis').value;
+  const requested=Math.abs(parseNumberFR(document.getElementById('calibCommanded').value||'0'));
+  const dist=requested*sign;
+  if(!requested){alert('Distance demandée invalide');return}
+  try{
+    const d=await apiPost('/calibration_move',{axis:axis,distance:dist});
+    show(d);
+    log(`Déplacement calibration ${axis} ${dist} mm envoyé`);
+  }catch(e){alert('Déplacement calibration échoué: '+e.message); log(e.message)}
+}
+async function applyStepsCalibration(){
+  const axis=document.getElementById('calibAxis').value;
+  let current_steps=parseNumberFR(document.getElementById('calibCurrentSteps').value||'0');
+  const commanded_distance=Math.abs(parseNumberFR(document.getElementById('calibCommanded').value||'0'));
+  const measured_distance=Math.abs(parseNumberFR(document.getElementById('calibMeasured').value||'0'));
+  if(commanded_distance<=0||measured_distance<=0){alert('Vérifie distance demandée et distance mesurée.');return}
+
+  // Si steps actuels est vide, on laisse le backend lire $100/$101/$102 directement dans GRBL.
+  let previewText='';
+  if(current_steps>0){
+    const newSteps=current_steps*commanded_distance/measured_distance;
+    previewText=`Résultat calculé pour ${axis}: ${newSteps.toFixed(5)} steps/mm`;
+    setText('stepsCalcPreview', previewText);
+    if(!confirm(`Appliquer ${axis} = ${newSteps.toFixed(5)} steps/mm ?`))return;
+  }else{
+    if(!confirm(`Lire automatiquement les steps actuels depuis GRBL et appliquer la calibration ${axis} ?`))return;
+  }
+
+  try{
+    const d=await apiPost('/calibrate_steps',{axis,current_steps,commanded_distance,measured_distance});
+    show(d);
+    const saved=(d.saved_value || d.new_steps);
+    if(saved) document.getElementById('calibCurrentSteps').value=Number(saved).toFixed(5);
+    setText('stepsCalcPreview', `Appliqué ${d.setting}: ancien=${Number(d.old_steps).toFixed(5)} → nouveau=${Number(d.new_steps).toFixed(5)} steps/mm | vérification=${d.verified?'OK':'à vérifier avec $$'}`);
+    log(`Calibration ${axis} envoyée : ${Number(d.new_steps).toFixed(5)} steps/mm`);
+  }catch(e){alert('Application calibration échouée: '+e.message); log(e.message)}
+}
+
+const Z_POS_STORAGE_KEY = 'cnc_soudure_z_positions_v1';
+
+function saveZPositionsLocal(){
+  try{
+    const payload = {
+      safeZ: document.getElementById('safeZ').value,
+      workZ: document.getElementById('workZ').value,
+      savedAt: new Date().toISOString()
+    };
+    localStorage.setItem(Z_POS_STORAGE_KEY, JSON.stringify(payload));
+    updateZLiveStatus();
+  }catch(e){ log('Sauvegarde Z impossible: '+e.message); }
+}
+
+function loadZPositionsLocal(){
+  try{
+    const txt = localStorage.getItem(Z_POS_STORAGE_KEY);
+    if(!txt) return false;
+    const payload = JSON.parse(txt);
+    if(payload.safeZ !== undefined) document.getElementById('safeZ').value = payload.safeZ;
+    if(payload.workZ !== undefined) document.getElementById('workZ').value = payload.workZ;
+    updateZLiveStatus();
+    updateZLiveStatus(); return true;
+  }catch(e){ log('Chargement Z impossible: '+e.message); return false; }
+}
+
+function updateZLiveStatus(){
+  const safe = parseNumberFR(document.getElementById('safeZ')?.value || '8');
+  const work = parseNumberFR(document.getElementById('workZ')?.value || '0.2');
+  const dz = (work - safe).toFixed(3);
+  setText('zLiveStatus', `Z sécurité: ${safe.toFixed(3)} | Z soudure: ${work.toFixed(3)} | ΔZ: ${dz}`);
+}
+
+
+async function captureZPosition(kind){
+  try{
+    const d = await apiGet('/status');
+    const pos = d.position;
+    if(!pos || pos.z === undefined || pos.z === null){
+      alert('Position Z introuvable. Clique Statut GRBL et vérifie WPos/MPos.');
+      return;
+    }
+    const z = Number(pos.z);
+    if(!Number.isFinite(z)){
+      alert('Position Z invalide.');
+      return;
+    }
+    if(kind === 'safe'){
+      document.getElementById('safeZ').value = z.toFixed(3);
+      log('Z sécurité capturé exactement : '+z.toFixed(3)+' mm');
+    }else{
+      document.getElementById('workZ').value = z.toFixed(3);
+      log('Z soudure capturé exactement : '+z.toFixed(3)+' mm');
+    }
+    saveZPositionsLocal();
+    updateZLiveStatus();
+  }catch(e){ alert('Capture Z échouée: '+e.message); log(e.message); }
+}
+
+async function goToCapturedZ(kind){
+  const target = kind === 'safe'
+    ? parseNumberFR(document.getElementById('safeZ').value || '0')
+    : parseNumberFR(document.getElementById('workZ').value || '0');
+  const feedZ = parseNumberFR(document.getElementById('feedZ').value || '40');
+  try{
+    const lines = ['G21','G90',`G1 Z${target.toFixed(3)} F${feedZ.toFixed(1)}`];
+    const d = await apiPost('/send_gcode_sequence', {lines});
+    show(d);
+    log((kind === 'safe' ? 'Aller à Z sécurité' : 'Aller à Z soudure')+' : '+target.toFixed(3)+' mm');
+  }catch(e){ alert('Déplacement Z échoué: '+e.message); log(e.message); }
+}
+
+
+let jogEventLock = false;
+
+function jogPress(e, axis, dir, btn){
+  if(e){
+    e.preventDefault();
+    e.stopPropagation();
+  }
+  // Avoid double events: pointerdown + mousedown on the same click
+  if(jogEventLock) return;
+  jogEventLock = true;
+  setTimeout(()=>{jogEventLock=false}, 180);
+  startContinuousJog(axis, dir, btn);
+}
+
+function jogRelease(e){
+  if(e){
+    e.preventDefault();
+    e.stopPropagation();
+  }
+  stopContinuousJog();
+}
+
+let activeJog = null;
+let jogIsStopping = false;
+async function startContinuousJog(axis, dir, btn){
+  if(activeJog) return;
+  activeJog = {axis, dir, btn, startedAt: Date.now()};
+  if(btn) btn.classList.add('active');
+  try{
+    const d = await apiPost('/jog_start', {axis: axis, direction: dir});
+    show(d);
+    log(`Jog continu ${axis}${dir>0?'+':'-'} démarré`);
+  }catch(e){
+    if(btn) btn.classList.remove('active');
+    activeJog = null;
+    alert('Jog continu échoué: '+e.message);
+    log(e.message);
+  }
+}
+async function stopContinuousJog(){
+  if(!activeJog || jogIsStopping) return;
+  const btn = activeJog.btn;
+  const label = `${activeJog.axis}${activeJog.dir>0?'+':'-'}`;
+  activeJog = null;
+  jogIsStopping = true;
+  if(btn) btn.classList.remove('active');
+  try{
+    const d = await apiPost('/jog_stop', {});
+    show(d);
+    log(`Jog continu ${label} arrêté`);
+  }catch(e){
+    log('Arrêt jog échoué: '+e.message);
+  }finally{
+    setTimeout(()=>{jogIsStopping = false;}, 120);
+  }
+}
+function bindContinuousJogButtons(){
+  // Les boutons jog utilisent des événements inline onpointerdown/onpointerup.
+  // Cette fonction garde seulement les sécurités globales.
+  window.addEventListener('pointerup', stopContinuousJog);
+  window.addEventListener('mouseup', stopContinuousJog);
+  window.addEventListener('touchend', stopContinuousJog);
+}
+
+async function configureSafe(){try{const d=await apiPost('/configure_safe'); show(d); log('Réglage doux appliqué : vitesses/accélérations réduites')}catch(e){alert(e.message); log(e.message)}}
+async function getStatus(){try{const d=await apiGet('/status'); setPill('grblPill','GRBL: '+(d.grbl_status||'ok')); show(d); log('Statut lu')}catch(e){alert(e.message); log(e.message)}}
+async function getLimitStatus(){try{const d=await apiGet('/limit_status'); setPill('limitPill',`Limites: X=${d.x_active?'ON':'off'} Y=${d.y_active?'ON':'off'} Z=${d.z_active?'ON':'off'}`); show(d); log('Statut limites lu')}catch(e){alert(e.message); log(e.message)}}
+async function unlockGRBL(){try{const d=await apiPost('/unlock'); show(d); log('Unlock envoyé')}catch(e){alert(e.message); log(e.message)}}
+async function setMachineOriginManual(){if(!confirm('Confirmer : la position actuelle devient origine machine X0 Y0 Z0 ?'))return; try{const d=await apiPost('/set_machine_origin'); show(d); log('Origine machine définie')}catch(e){alert(e.message); log(e.message)}}
+async function homingGRBL(){try{const d=await apiPost('/homing'); show(d); log('Retour origine machine terminé')}catch(e){alert(e.message); log(e.message)}}
+async function softResetGRBL(){try{const d=await apiPost('/soft_reset'); show(d); log('Soft reset')}catch(e){alert(e.message); log(e.message)}}
+async function stopGRBL(){try{const d=await apiPost('/stop'); show(d); log('Stop')}catch(e){alert(e.message); log(e.message)}}
+async function emergencyGRBL(){try{const d=await apiPost('/emergency'); show(d); log('Emergency')}catch(e){alert(e.message); log(e.message)}}
+async function jogRelative(axis,dir){const step=axis==='Z'?parseNumberFR(document.getElementById('jogStepZ').value||'0.2'):parseNumberFR(document.getElementById('jogStepXY').value||'1'); try{const d=await apiPost('/calibration_move',{axis:axis,distance:dir*step}); show(d); log(`Jog ${axis}${(dir*step).toFixed(3)}`)}catch(e){alert('Jog échoué: '+e.message); log(e.message)}}
+async function zSecurityUp(){return goToCapturedZ('safe')}
+async function zSecurityDown(){return goToCapturedZ('work')}
+async function jogToSafeZ(){return zSecurityUp()}
+async function setCurrentAsReference(){alert('Utilise maintenant la calibration PCB par 2 coins : Capturer coin A puis Capturer coin B.')}
+
+document.addEventListener('DOMContentLoaded',()=>{showDashboardIfLogged(); renderSelection(); bindContinuousJogButtons(); loadPcbCalibrationLocal(false); loadZPositionsLocal(); updateZLiveStatus(); testBackend();});
+</script>
+</body>
+</html>

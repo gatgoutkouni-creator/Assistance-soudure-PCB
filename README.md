@@ -26,6 +26,10 @@ Le projet couvre à la fois :
 
 ## Aperçu du projet
 
+**De la conception (SolidWorks) à la machine réelle :**
+
+![Conception vs réalisation](captures/conception_vs_realisation.png)
+
 **Gravure de la carte PCB par la machine CNC :**
 
 ![Gravure PCB par la CNC](captures/gravure_pcb_cnc.png)
