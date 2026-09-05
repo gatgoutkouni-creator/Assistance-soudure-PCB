@@ -1,6 +1,6 @@
 # Assistance Soudure PCB
 
-Projet de Fin d'Études (PFE) réalisé par **KOUNI** et **Wedad Louleid**.
+Projet de Fin d'Études (PFE) réalisé par **Gatgout Kouni** et **Wedad Louleid**.
 
 ## Présentation
 
@@ -24,7 +24,17 @@ Le projet couvre à la fois :
 - `impression/` — fichiers STL destinés à l'impression 3D des pièces support.
 - `Nema 17 42x40x5/` — modèle et documentation du moteur pas-à-pas utilisé pour la motorisation des axes.
 
+## Aperçu du projet
+
+**Gravure de la carte PCB par la machine CNC :**
+
+![Gravure PCB par la CNC](captures/gravure_pcb_cnc.png)
+
+**Tableau de bord de contrôle de la machine :**
+
+![Dashboard de contrôle](captures/dashboard_controle.png)
+
 ## Auteurs
 
-- **KOUNI**
+- **Gatgout Kouni**
 - **Wedad Louleid**
