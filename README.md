@@ -37,10 +37,6 @@ Si la vidéo ne s'affiche pas directement, tu peux la télécharger ou la vision
 
 ![Conception vs réalisation](captures/conception_vs_realisation.png)
 
-**Gravure de la carte PCB par la machine CNC :**
-
-![Gravure PCB par la CNC](captures/gravure_pcb_cnc.png)
-
 **Tableau de bord de contrôle de la machine :**
 
 ![Dashboard de contrôle](captures/dashboard_controle.png)
