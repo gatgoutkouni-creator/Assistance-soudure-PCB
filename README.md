@@ -1,22 +1,30 @@
-<<<<<<< HEAD
 # Assistance Soudure PCB
 
-Projet de Fin d'Études (PFE) — machine de soudure semi-automatique de cartes PCB.
+Projet de Fin d'Études (PFE) réalisé par **KOUNI** et **Wedad Louleid**.
+
+## Présentation
+
+Ce projet consiste en la conception et la réalisation d'une **machine de soudure semi-automatique pour cartes de circuits imprimés (PCB)**. L'objectif est d'automatiser le déplacement du fer à souder selon une séquence programmée (axes X/Y/Z de type CNC), afin de fiabiliser et d'accélérer les opérations de soudage par rapport à une soudure manuelle.
+
+Le projet couvre à la fois :
+- la **conception mécanique** de la machine (structure, axes de déplacement, supports, fixations) ;
+- le **pilotage logiciel** de la séquence de soudure.
 
 ## Contenu du dépôt
 
-- `app_cnc_final_sequence_complete_robuste.py` — script principal de pilotage de la séquence CNC.
+- `app_cnc_final_sequence_complete_robuste.py` — script principal de pilotage de la séquence CNC (gestion des déplacements des axes et de la séquence de soudure).
 - `app_machine_soudure_semi_automatique.py.py` — application de contrôle de la machine de soudure semi-automatique.
-- `PFE kouni/` — conception mécanique (SolidWorks) de la machine : pièces (`.SLDPRT`), assemblages (`.SLDASM`), plans de découpe laser (`.DXF`), modèles d'impression 3D (`.STL`) et composants standards (moteur Nema 17, etc.).
+- `PFE kouni/` — conception mécanique (SolidWorks) de la machine : pièces (`.SLDPRT`), assemblages (`.SLDASM`), plans de découpe laser (`.DXF`), modèles d'impression 3D (`.STL`) et composants standards (moteur pas-à-pas Nema 17, etc.).
 
-## Sous-dossiers
+### Sous-dossiers de conception
 
-- `axe Z/` — assemblage et pièces de l'axe Z.
-- `decoupe laser/` — fichiers DXF pour découpe laser.
-- `fer/` — pièces liées au fer à souder.
-- `impression/` — fichiers STL pour impression 3D.
-- `Nema 17 42x40x5/` — modèle et documentation du moteur pas à pas utilisé.
-=======
-# Machine-de-soudure-semi-auto
-machine de soudure semi auto de cartes pcb
->>>>>>> b2ed8c3fe251c86c008421a8345f83006b23e18b
+- `axe Z/` — assemblage et pièces de l'axe Z (déplacement vertical du fer à souder).
+- `decoupe laser/` — fichiers DXF pour la découpe laser des plaques de structure.
+- `fer/` — pièces liées au support et à la fixation du fer à souder.
+- `impression/` — fichiers STL destinés à l'impression 3D des pièces support.
+- `Nema 17 42x40x5/` — modèle et documentation du moteur pas-à-pas utilisé pour la motorisation des axes.
+
+## Auteurs
+
+- **KOUNI**
+- **Wedad Louleid**
