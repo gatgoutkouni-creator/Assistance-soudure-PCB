@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Assistance Soudure PCB
 
 Projet de Fin d'Études (PFE) — machine de soudure semi-automatique de cartes PCB.
@@ -15,3 +16,7 @@ Projet de Fin d'Études (PFE) — machine de soudure semi-automatique de cartes 
 - `fer/` — pièces liées au fer à souder.
 - `impression/` — fichiers STL pour impression 3D.
 - `Nema 17 42x40x5/` — modèle et documentation du moteur pas à pas utilisé.
+=======
+# Machine-de-soudure-semi-auto
+machine de soudure semi auto de cartes pcb
+>>>>>>> b2ed8c3fe251c86c008421a8345f83006b23e18b
