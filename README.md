@@ -95,6 +95,8 @@ Si la vidéo ne s'affiche pas directement, tu peux la télécharger ou la vision
 **Tableau de bord de contrôle de la machine :**
 
 ![Dashboard de contrôle](captures/dashboard_controle.png)
+## NB: identifiant: admin // mot de passe: 1234
+       
 
 ## Contexte
 
